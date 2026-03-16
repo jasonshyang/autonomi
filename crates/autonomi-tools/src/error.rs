@@ -1,0 +1,27 @@
+/// Errors that can occur while connecting to a [`Toolbox`] server.
+#[derive(Debug, thiserror::Error)]
+pub enum ClientError {
+    /// The MCP transport connection or handshake failed.
+    #[error("MCP connection failed: {0}")]
+    Connect(#[from] rmcp::service::ClientInitializeError),
+
+    /// Fetching the tool list from the server failed.
+    #[error("Failed to fetch tool list: {0}")]
+    ListTools(#[from] rmcp::ServiceError),
+
+    /// Failed to resolve the path to the `toolbox-server` binary.
+    #[error("Failed to resolve toolbox-server binary path: {0}")]
+    ResolveBinary(String),
+
+    /// Failed to spawn the `toolbox-server` child process.
+    #[error("Failed to spawn toolbox-server process: {0}")]
+    SpawnProcess(#[source] std::io::Error),
+}
+
+/// Errors that can occur while starting a [`Toolbox`] server.
+#[derive(Debug, thiserror::Error)]
+pub enum ServerError {
+    /// The MCP transport failed to initialise.
+    #[error("Failed to start Toolbox server: {0}")]
+    Start(#[from] rmcp::service::ServerInitializeError),
+}
