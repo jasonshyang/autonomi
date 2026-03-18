@@ -44,12 +44,11 @@ async fn main() -> anyhow::Result<()> {
         .with_ansi(false)
         .init();
 
-    tracing::info!(
-        version = env!("CARGO_PKG_VERSION"),
-        "toolbox-server starting on stdio"
-    );
+    tracing::info!(version = env!("CARGO_PKG_VERSION"), "toolbox-server starting on stdio");
 
-    // ── Configuration via environment variables ───────────────────────────────
+    // ---------------------------------------------------------------------------
+    // Configuration via environment variables
+    // ---------------------------------------------------------------------------
     let name =
         std::env::var("TOOLBOX_SERVER_NAME").unwrap_or_else(|_| "toolbox-server".to_string());
 
@@ -58,7 +57,9 @@ async fn main() -> anyhow::Result<()> {
 
     let instructions = std::env::var("TOOLBOX_SERVER_INSTRUCTIONS").ok();
 
-    // ── Build and start the Toolbox ───────────────────────────────────────────
+    // ---------------------------------------------------------------------------
+    // Build and start the Toolbox
+    // ---------------------------------------------------------------------------
     let mut builder = Toolbox::builder()
         .name(name)
         .version(version)

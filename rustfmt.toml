@@ -1,0 +1,14 @@
+max_width = 100
+tab_spaces = 4
+newline_style = "Unix"
+group_imports = "StdExternalCrate"
+imports_granularity = "Crate"
+match_block_trailing_comma = true
+wrap_comments = true
+use_small_heuristics = "Max"
+chain_width = 60
+trailing_comma = "Vertical"
+normalize_doc_attributes = true
+fn_single_line = true
+blank_lines_lower_bound = 0
+blank_lines_upper_bound = 1

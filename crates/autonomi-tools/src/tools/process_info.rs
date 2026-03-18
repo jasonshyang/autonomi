@@ -17,12 +17,11 @@ use std::borrow::Cow;
 use rmcp::{schemars, ErrorData};
 use serde::{Deserialize, Serialize};
 
-use crate::toolbox::Toolbox;
-use crate::{SyncTool, ToolBase};
+use crate::{toolbox::Toolbox, SyncTool, ToolBase};
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // EnvVarsTool
-// ═══════════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 #[derive(Debug, Default, Deserialize, schemars::JsonSchema)]
 pub struct EnvVarsParams {
@@ -52,9 +51,7 @@ impl ToolBase for EnvVarsTool {
     type Output = EnvVarsOutput;
     type Error = ErrorData;
 
-    fn name() -> Cow<'static, str> {
-        "env_vars".into()
-    }
+    fn name() -> Cow<'static, str> { "env_vars".into() }
 
     fn description() -> Option<Cow<'static, str>> {
         Some(
@@ -78,9 +75,9 @@ impl SyncTool<Toolbox> for EnvVarsTool {
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // WorkingDirTool
-// ═══════════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 #[derive(Debug, Default, Deserialize, schemars::JsonSchema)]
 pub struct WorkingDirParams {}
@@ -99,9 +96,7 @@ impl ToolBase for WorkingDirTool {
     type Output = WorkingDirOutput;
     type Error = ErrorData;
 
-    fn name() -> Cow<'static, str> {
-        "working_dir".into()
-    }
+    fn name() -> Cow<'static, str> { "working_dir".into() }
 
     fn description() -> Option<Cow<'static, str>> {
         Some("Return the current working directory of the server process.".into())
@@ -121,9 +116,9 @@ impl SyncTool<Toolbox> for WorkingDirTool {
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // HostnameTool
-// ═══════════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 #[derive(Debug, Default, Deserialize, schemars::JsonSchema)]
 pub struct HostnameParams {}
@@ -142,9 +137,7 @@ impl ToolBase for HostnameTool {
     type Output = HostnameOutput;
     type Error = ErrorData;
 
-    fn name() -> Cow<'static, str> {
-        "hostname".into()
-    }
+    fn name() -> Cow<'static, str> { "hostname".into() }
 
     fn description() -> Option<Cow<'static, str>> {
         Some("Return the hostname of the machine the server process is running on.".into())

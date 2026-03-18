@@ -1,6 +1,7 @@
 //! # HttpFetch
 //!
-//! A single async tool that performs a GET request and returns the response body.
+//! A single async tool that performs a GET request and returns the response
+//! body.
 //!
 //! | Tool | Description |
 //! |------|-------------|
@@ -14,12 +15,11 @@ use std::borrow::Cow;
 use rmcp::{schemars, ErrorData};
 use serde::{Deserialize, Serialize};
 
-use crate::toolbox::Toolbox;
-use crate::{AsyncTool, ToolBase};
+use crate::{toolbox::Toolbox, AsyncTool, ToolBase};
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // HttpFetchTool
-// ═══════════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 #[derive(Debug, Default, Deserialize, schemars::JsonSchema)]
 pub struct HttpFetchParams {
@@ -43,9 +43,7 @@ impl ToolBase for HttpFetchTool {
     type Output = HttpFetchOutput;
     type Error = ErrorData;
 
-    fn name() -> Cow<'static, str> {
-        "http_fetch".into()
-    }
+    fn name() -> Cow<'static, str> { "http_fetch".into() }
 
     fn description() -> Option<Cow<'static, str>> {
         Some(

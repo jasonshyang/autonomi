@@ -17,18 +17,19 @@ use std::borrow::Cow;
 use rmcp::{schemars, ErrorData};
 use serde::{Deserialize, Serialize};
 
-use crate::toolbox::Toolbox;
-use crate::{SyncTool, ToolBase};
+use crate::{toolbox::Toolbox, SyncTool, ToolBase};
 
-// ── Shared helpers ─────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Shared helpers
+// ---------------------------------------------------------------------------
 
 fn io_err(context: &str, path: &str, e: std::io::Error) -> ErrorData {
     ErrorData::invalid_params(format!("{context} '{path}': {e}"), None)
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // ReadFileTool
-// ═══════════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 #[derive(Debug, Default, Deserialize, schemars::JsonSchema)]
 pub struct ReadFileParams {
@@ -50,9 +51,7 @@ impl ToolBase for ReadFileTool {
     type Output = ReadFileOutput;
     type Error = ErrorData;
 
-    fn name() -> Cow<'static, str> {
-        "read_file".into()
-    }
+    fn name() -> Cow<'static, str> { "read_file".into() }
 
     fn description() -> Option<Cow<'static, str>> {
         Some("Read the full UTF-8 contents of a file at the given path.".into())
@@ -68,9 +67,9 @@ impl SyncTool<Toolbox> for ReadFileTool {
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // ListDirTool
-// ═══════════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 #[derive(Debug, Default, Deserialize, schemars::JsonSchema)]
 pub struct ListDirParams {
@@ -100,9 +99,7 @@ impl ToolBase for ListDirTool {
     type Output = ListDirOutput;
     type Error = ErrorData;
 
-    fn name() -> Cow<'static, str> {
-        "list_dir".into()
-    }
+    fn name() -> Cow<'static, str> { "list_dir".into() }
 
     fn description() -> Option<Cow<'static, str>> {
         Some("List all files and directories directly inside the given directory path.".into())
@@ -141,9 +138,9 @@ impl SyncTool<Toolbox> for ListDirTool {
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 // FileMetadataTool
-// ═══════════════════════════════════════════════════════════════════════════════
+// ---------------------------------------------------------------------------
 
 #[derive(Debug, Default, Deserialize, schemars::JsonSchema)]
 pub struct FileMetadataParams {
@@ -173,9 +170,7 @@ impl ToolBase for FileMetadataTool {
     type Output = FileMetadataOutput;
     type Error = ErrorData;
 
-    fn name() -> Cow<'static, str> {
-        "file_metadata".into()
-    }
+    fn name() -> Cow<'static, str> { "file_metadata".into() }
 
     fn description() -> Option<Cow<'static, str>> {
         Some(

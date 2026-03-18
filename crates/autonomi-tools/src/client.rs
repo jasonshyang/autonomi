@@ -1,15 +1,14 @@
-use std::future::Future;
-use std::path::PathBuf;
-use std::pin::Pin;
+use std::{future::Future, path::PathBuf, pin::Pin};
 
-use rig::completion::ToolDefinition;
-use rig::tool::{ToolDyn, ToolError};
-use rmcp::ClientHandler;
+use rig::{
+    completion::ToolDefinition,
+    tool::{ToolDyn, ToolError},
+};
 use rmcp::{
     model::{CallToolRequestParams, CallToolResult, RawContent, Tool as McpTool},
     service::{RunningService, ServerSink},
     transport::child_process::TokioChildProcess,
-    RoleClient, ServiceExt,
+    ClientHandler, RoleClient, ServiceExt,
 };
 
 use crate::ClientError;
@@ -33,10 +32,7 @@ pub struct SpawnConfig {
 impl SpawnConfig {
     /// Use an explicit path to the server binary.
     pub fn new(binary_path: impl Into<PathBuf>) -> Self {
-        Self {
-            binary_path: Some(binary_path.into()),
-            ..Default::default()
-        }
+        Self { binary_path: Some(binary_path.into()), ..Default::default() }
     }
 
     /// Append a command-line argument that will be passed to the server.
@@ -82,7 +78,9 @@ impl SpawnConfig {
     }
 }
 
-// ── ToolboxClient ─────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// ToolboxClient
+// ---------------------------------------------------------------------------
 
 pub struct ToolboxClient<H: ClientHandler> {
     /// Held to keep the MCP connection open.
@@ -115,12 +113,7 @@ impl<H: ClientHandler> ToolboxClient<H> {
             .list_all_tools()
             .await?
             .into_iter()
-            .map(|tool| {
-                Box::new(McpToolAdaptor {
-                    tool,
-                    server: sink.clone(),
-                }) as Box<dyn ToolDyn>
-            })
+            .map(|tool| Box::new(McpToolAdaptor { tool, server: sink.clone() }) as Box<dyn ToolDyn>)
             .collect();
 
         Ok(Self { service, tools })
@@ -128,11 +121,10 @@ impl<H: ClientHandler> ToolboxClient<H> {
 
     /// Return a clone of the underlying [`ServerSink`] for advanced use cases
     /// such as calling tools directly or inspecting server state.
-    pub fn server_sink(&self) -> ServerSink {
-        self.service.peer().clone()
-    }
+    pub fn server_sink(&self) -> ServerSink { self.service.peer().clone() }
 
-    /// Fetch the latest tool list from the server, replacing any previously fetched tools.
+    /// Fetch the latest tool list from the server, replacing any previously
+    /// fetched tools.
     pub async fn fetch_tools(&mut self) -> Result<(), ClientError> {
         let sink = self.service.peer();
 
@@ -140,19 +132,15 @@ impl<H: ClientHandler> ToolboxClient<H> {
             .list_all_tools()
             .await?
             .into_iter()
-            .map(|tool| {
-                Box::new(McpToolAdaptor {
-                    tool,
-                    server: sink.clone(),
-                }) as Box<dyn ToolDyn>
-            })
+            .map(|tool| Box::new(McpToolAdaptor { tool, server: sink.clone() }) as Box<dyn ToolDyn>)
             .collect();
 
         self.tools = tools;
         Ok(())
     }
 
-    /// Return the list of tools fetched from the server, consuming them from the client.
+    /// Return the list of tools fetched from the server, consuming them from
+    /// the client.
     ///
     /// Do not consume the Client so the server can remain connected.
     pub fn take_tools(&mut self) -> Vec<Box<dyn ToolDyn>> {
@@ -164,7 +152,9 @@ impl<H: ClientHandler> ToolboxClient<H> {
     }
 }
 
-// ── McpToolAdaptor ────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// McpToolAdaptor
+// ---------------------------------------------------------------------------
 
 /// Bridges a single rmcp [`McpTool`] definition + [`ServerSink`] into rig's
 /// [`ToolDyn`] trait so it can live inside any rig agent's tool list.
@@ -174,9 +164,7 @@ struct McpToolAdaptor {
 }
 
 impl ToolDyn for McpToolAdaptor {
-    fn name(&self) -> String {
-        self.tool.name.to_string()
-    }
+    fn name(&self) -> String { self.tool.name.to_string() }
 
     fn definition(
         &self,
@@ -213,7 +201,7 @@ impl ToolDyn for McpToolAdaptor {
                     let mut m = serde_json::Map::new();
                     m.insert("input".to_string(), other);
                     m
-                }
+                },
             };
 
             let result: CallToolResult = server
@@ -226,7 +214,9 @@ impl ToolDyn for McpToolAdaptor {
     }
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 /// Flatten every content piece of an MCP [`CallToolResult`] into one string.
 fn call_tool_result_to_string(result: CallToolResult) -> String {

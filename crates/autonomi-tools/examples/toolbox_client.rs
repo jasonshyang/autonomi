@@ -1,6 +1,7 @@
+use std::path::PathBuf;
+
 use autonomi_tools::client::{SpawnConfig, ToolboxClient};
 use rig::{client::CompletionClient, completion::Prompt, providers::ollama};
-use std::path::PathBuf;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

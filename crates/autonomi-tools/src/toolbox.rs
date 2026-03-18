@@ -14,7 +14,9 @@ use rmcp::{
 
 use crate::ServerError;
 
-// ── Toolbox ───────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Toolbox
+// ---------------------------------------------------------------------------
 
 /// An assembled MCP server.
 ///
@@ -35,9 +37,7 @@ impl<S: Send + Sync + 'static> Toolbox<S> {
     ///
     /// Call this from inside a `SyncTool` or `AsyncTool` implementation to
     /// access the value supplied via [`ToolboxBuilder::with_state`].
-    pub fn state(&self) -> &S {
-        &self.state
-    }
+    pub fn state(&self) -> &S { &self.state }
 
     /// Serve this [`Toolbox`] over **stdio** (stdin / stdout).
     ///
@@ -53,15 +53,11 @@ impl<S: Send + Sync + 'static> Toolbox<S> {
 
 impl Toolbox<()> {
     /// Start building a new [`Toolbox`].
-    pub fn builder() -> ToolboxBuilder<()> {
-        ToolboxBuilder::new()
-    }
+    pub fn builder() -> ToolboxBuilder<()> { ToolboxBuilder::new() }
 }
 
 impl<S: Send + Sync + 'static> ServerHandler for Toolbox<S> {
-    fn get_info(&self) -> ServerInfo {
-        self.server_info.clone()
-    }
+    fn get_info(&self) -> ServerInfo { self.server_info.clone() }
 
     fn list_tools(
         &self,
@@ -81,12 +77,12 @@ impl<S: Send + Sync + 'static> ServerHandler for Toolbox<S> {
         async move { self.router.call(ctx).await }
     }
 
-    fn get_tool(&self, name: &str) -> Option<rmcp::model::Tool> {
-        self.router.get(name).cloned()
-    }
+    fn get_tool(&self, name: &str) -> Option<rmcp::model::Tool> { self.router.get(name).cloned() }
 }
 
-// ── ToolboxBuilder ────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// ToolboxBuilder
+// ---------------------------------------------------------------------------
 
 /// Fluent builder for [`Toolbox<S>`].
 pub struct ToolboxBuilder<S: Send + Sync + 'static = ()> {
@@ -176,7 +172,9 @@ impl ToolboxBuilder<()> {
     }
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 fn make_server_info(name: &str, version: &str, instructions: Option<&str>) -> ServerInfo {
     let caps = ServerCapabilities::builder().enable_tools().build();
