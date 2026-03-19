@@ -36,3 +36,29 @@ Shared primitives used across the workspace.
 - **`Timestamp`** — a thin `u64` UTC Unix-seconds wrapper with `Serialize`/`Deserialize` support, used to timestamp memory entries and events.
 
 See [`crates/autonomi-utils`](crates/autonomi-utils).
+
+---
+
+## Quick-start demo
+
+The `demo` binary in [`apps/agent`](apps/agent/src/bin/demo.rs) shows the full stack end-to-end: an Ollama-backed agent with filesystem tools and episodic memory that navigates the repo and summarises a crate's README in one sentence.
+
+### Dependencies
+
+| Dependency | Purpose | Install |
+|---|---|---|
+| [Ollama](https://ollama.com) | Local LLM server | [ollama.com/download](https://ollama.com/download) |
+| `qwen3:4b` model | Agent completions | `ollama pull qwen3:4b` |
+| `nomic-embed-text` model | Memory embeddings | `ollama pull nomic-embed-text` |
+
+### Run
+
+```sh
+ollama serve
+
+cargo build --release -p toolbox
+
+BASIC_TOOLBOX_BIN=./target/release/basic-toolbox cargo run --bin demo
+```
+
+The agent will use the filesystem tools to locate `crates/autonomi-agent/README.md` and print a one-sentence summary. Logs go to stderr; the agent response goes to stdout.

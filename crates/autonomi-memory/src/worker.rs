@@ -90,6 +90,8 @@ async fn run_worker<E>(mut store: MemoryStore<E>, mut rx: mpsc::Receiver<MemoryC
 where
     E: EmbeddingModel + Send + Sync + 'static,
 {
+    tracing::info!("memory worker: started");
+
     while let Some(cmd) = rx.recv().await {
         match cmd {
             MemoryCommand::Add { agent_id, content } => {
@@ -114,4 +116,6 @@ where
             },
         }
     }
+
+    tracing::info!("memory worker: stopped");
 }

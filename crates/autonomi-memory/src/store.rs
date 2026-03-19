@@ -12,10 +12,6 @@ use crate::{MemoryEntry, MemoryError};
 /// Each call to [`add`][MemoryStore::add] embeds the conversation turn and
 /// appends it to the store.  [`search`][MemoryStore::search] embeds the query
 /// and returns the top-N most similar entries by cosine similarity.
-///
-/// The store is intended to be wrapped in `Arc<RwLock<MemoryStore<E>>>` and
-/// shared between a [`MemoryHook`][crate::MemoryHook] (writer) and a
-/// [`MemoryIndex`][crate::MemoryIndex] (reader).
 pub struct MemoryStore<E: EmbeddingModel> {
     model: E,
     entries: Vec<(MemoryEntry, Embedding)>,

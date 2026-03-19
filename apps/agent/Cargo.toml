@@ -3,7 +3,18 @@ name = "agent"
 edition.workspace = true
 version.workspace = true
 
+[[bin]]
+name = "demo"
+path = "src/bin/demo.rs"
+
 [dependencies]
-autonomi-agent = { workspace = true }
+autonomi-agent   = { workspace = true }
+autonomi-memory  = { workspace = true }
 autonomi-runtime = { workspace = true }
-autonomi-tools = { workspace = true }
+autonomi-tools   = { workspace = true }
+
+anyhow           = { workspace = true }
+tokio            = { workspace = true }
+tracing          = { workspace = true }
+tracing-subscriber = { workspace = true }
+rig-core         = { workspace = true }

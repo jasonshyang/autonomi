@@ -1,4 +1,4 @@
-//! # toolbox-server
+//! # basic-toolbox
 //!
 //! A stdio MCP server binary built on top of [`Toolbox`] with all built-in
 //! tools pre-registered.

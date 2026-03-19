@@ -4,8 +4,8 @@ edition.workspace = true
 version.workspace = true
 
 [[bin]]
-name = "toolbox-server"
-path = "src/bin/toolbox_server.rs"
+name = "basic-toolbox"
+path = "src/bin/basic_toolbox.rs"
 
 [dependencies]
 autonomi-tools = { workspace = true }

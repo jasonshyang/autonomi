@@ -16,7 +16,7 @@
 
 use rig::{
     agent::AgentBuilder,
-    client::{CompletionClient, ProviderClient},
+    client::{CompletionClient, Nothing, ProviderClient},
     providers::{anthropic, cohere, gemini, groq, ollama, openai},
 };
 
@@ -37,9 +37,7 @@ impl Provider {
     /// `AgentBuilder` backed by OpenAI's completions API.
     /// Reads `OPENAI_API_KEY` from the environment.
     pub fn openai(model: &str) -> AgentBuilder<openai::completion::CompletionModel> {
-        openai::Client::from_env()
-            .completions_api()
-            .agent(model)
+        openai::Client::from_env().completions_api().agent(model)
     }
 
     /// `AgentBuilder` backed by Anthropic.
@@ -49,10 +47,21 @@ impl Provider {
     }
 
     /// `AgentBuilder` backed by a local Ollama instance.
-    /// Reads `OLLAMA_HOST` from the environment (defaults to `http://localhost:11434`).
-    pub fn ollama(model: &str) -> AgentBuilder<ollama::CompletionModel> {
-        ollama::Client::from_env().agent(model)
+    ///
+    /// Returns `None` if the HTTP client cannot be initialised (this is
+    /// extremely unlikely in practice — it would only happen if the TLS
+    /// backend fails to load).
+    ///
+    /// Connects to the Ollama server at the compiled-in default
+    /// (`http://localhost:11434`). No API key is required.
+    pub fn ollama(model: &str) -> Option<AgentBuilder<ollama::CompletionModel>> {
+        Some(ollama::Client::new(Nothing).ok()?.agent(model))
     }
+
+    /// Return a bare Ollama [`ollama::Client`].
+    ///
+    /// Returns `None` if the HTTP client cannot be initialised.
+    pub fn ollama_client() -> Option<ollama::Client> { ollama::Client::new(Nothing).ok() }
 
     /// `AgentBuilder` backed by Google Gemini.
     /// Reads `GEMINI_API_KEY` from the environment.
