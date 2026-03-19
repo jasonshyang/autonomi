@@ -109,7 +109,6 @@ name = "autonomi-memory"
 version = "0.1.0"
 dependencies = [
  "async-trait",
- "autonomi-runtime",
  "autonomi-utils",
  "rig-core",
  "serde",
@@ -125,6 +124,7 @@ version = "0.1.0"
 dependencies = [
  "async-trait",
  "autonomi-agent",
+ "autonomi-memory",
  "autonomi-utils",
  "futures",
  "rig-core",

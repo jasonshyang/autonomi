@@ -1,12 +1,10 @@
 [package]
-name = "autonomi-runtime"
+name = "autonomi-memory"
 edition.workspace = true
 version.workspace = true
 
 [dependencies]
-autonomi-agent = { workspace = true }
-autonomi-utils = { workspace = true }
-autonomi-memory = { workspace = true, optional = true }
+autonomi-utils   = { workspace = true }
 
 rig-core    = { workspace = true }
 tokio       = { workspace = true }
@@ -15,9 +13,3 @@ serde_json  = { workspace = true }
 thiserror   = { workspace = true }
 async-trait = { workspace = true }
 tracing     = { workspace = true }
-futures     = { workspace = true }
-
-[features]
-default = ["tracing-hook", "memory-hook"]
-tracing-hook = []
-memory-hook = ["autonomi-memory"]
