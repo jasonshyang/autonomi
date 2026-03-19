@@ -150,7 +150,6 @@ dependencies = [
  "thiserror 2.0.18",
  "tokio",
  "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -2032,6 +2031,17 @@ dependencies = [
  "futures-sink",
  "pin-project-lite",
  "tokio",
+]
+
+[[package]]
+name = "toolbox"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "autonomi-tools",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

@@ -1,0 +1,15 @@
+[package]
+name = "toolbox"
+edition.workspace = true
+version.workspace = true
+
+[[bin]]
+name = "toolbox-server"
+path = "src/bin/toolbox_server.rs"
+
+[dependencies]
+autonomi-tools = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }

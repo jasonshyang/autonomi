@@ -31,38 +31,26 @@ use autonomi_tools::{
         WorkingDirTool,
     },
 };
+use toolbox::ServerConfig;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Logs MUST go to stderr — stdout is reserved for the JSON-RPC stream.
-    tracing_subscriber::fmt()
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info")),
-        )
-        .with_writer(std::io::stderr)
-        .with_ansi(false)
-        .init();
+    toolbox::init_tracing();
 
     tracing::info!(version = env!("CARGO_PKG_VERSION"), "toolbox-server starting on stdio");
 
     // ---------------------------------------------------------------------------
     // Configuration via environment variables
     // ---------------------------------------------------------------------------
-    let name =
-        std::env::var("TOOLBOX_SERVER_NAME").unwrap_or_else(|_| "toolbox-server".to_string());
-
-    let version = std::env::var("TOOLBOX_SERVER_VERSION")
-        .unwrap_or_else(|_| env!("CARGO_PKG_VERSION").to_string());
-
-    let instructions = std::env::var("TOOLBOX_SERVER_INSTRUCTIONS").ok();
+    let config = ServerConfig::from_env("toolbox-server", env!("CARGO_PKG_VERSION"));
 
     // ---------------------------------------------------------------------------
     // Build and start the Toolbox
     // ---------------------------------------------------------------------------
     let mut builder = Toolbox::builder()
-        .name(name)
-        .version(version)
+        .name(config.name)
+        .version(config.version)
         // readonly filesystem
         .with_sync_tool::<ReadFileTool>()
         .with_sync_tool::<ListDirTool>()
@@ -74,7 +62,7 @@ async fn main() -> anyhow::Result<()> {
         .with_sync_tool::<WorkingDirTool>()
         .with_sync_tool::<HostnameTool>();
 
-    if let Some(inst) = instructions {
+    if let Some(inst) = config.instructions {
         builder = builder.instructions(inst);
     }
 

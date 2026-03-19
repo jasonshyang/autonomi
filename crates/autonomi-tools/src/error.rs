@@ -9,12 +9,8 @@ pub enum ClientError {
     #[error("Failed to fetch tool list: {0}")]
     ListTools(#[from] rmcp::ServiceError),
 
-    /// Failed to resolve the path to the `toolbox-server` binary.
-    #[error("Failed to resolve toolbox-server binary path: {0}")]
-    ResolveBinary(String),
-
-    /// Failed to spawn the `toolbox-server` child process.
-    #[error("Failed to spawn toolbox-server process: {0}")]
+    /// Failed to spawn the toolbox server child process.
+    #[error("Failed to spawn toolbox server process: {0}")]
     SpawnProcess(#[source] std::io::Error),
 }
 

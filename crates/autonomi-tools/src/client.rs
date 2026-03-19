@@ -13,12 +13,10 @@ use rmcp::{
 
 use crate::ClientError;
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct SpawnConfig {
-    /// Path to the `toolbox-server` binary.
-    ///
-    /// `None` means "resolve automatically next to the current executable".
-    pub binary_path: Option<PathBuf>,
+    /// Path to the toolbox server binary.
+    pub binary_path: PathBuf,
 
     /// Extra command-line arguments forwarded verbatim to the server process.
     pub args: Vec<String>,
@@ -30,9 +28,9 @@ pub struct SpawnConfig {
 }
 
 impl SpawnConfig {
-    /// Use an explicit path to the server binary.
+    /// Create a new [`SpawnConfig`] with an explicit path to the server binary.
     pub fn new(binary_path: impl Into<PathBuf>) -> Self {
-        Self { binary_path: Some(binary_path.into()), ..Default::default() }
+        Self { binary_path: binary_path.into(), args: Vec::new(), env: Vec::new() }
     }
 
     /// Append a command-line argument that will be passed to the server.
@@ -47,34 +45,14 @@ impl SpawnConfig {
         self
     }
 
-    /// Resolve the binary path, falling back to auto-resolution when none was
-    /// provided.
-    fn build_command(&self) -> Result<tokio::process::Command, ClientError> {
-        let binary = self.resolve_binary()?;
-        let mut cmd = tokio::process::Command::new(binary);
+    /// Build the [`tokio::process::Command`] that will spawn the server.
+    fn build_command(&self) -> tokio::process::Command {
+        let mut cmd = tokio::process::Command::new(&self.binary_path);
         cmd.args(&self.args);
         for (k, v) in &self.env {
             cmd.env(k, v);
         }
-        Ok(cmd)
-    }
-
-    fn resolve_binary(&self) -> Result<PathBuf, ClientError> {
-        if let Some(ref path) = self.binary_path {
-            return Ok(path.clone());
-        }
-
-        // Auto-resolve: look next to the current executable.
-        let exe = std::env::current_exe().map_err(|e| ClientError::ResolveBinary(e.to_string()))?;
-
-        let path = exe
-            .parent()
-            .ok_or_else(|| {
-                ClientError::ResolveBinary("current executable has no parent directory".to_string())
-            })?
-            .join("toolbox-server");
-
-        Ok(path)
+        cmd
     }
 }
 
@@ -90,9 +68,9 @@ pub struct ToolboxClient<H: ClientHandler> {
 }
 
 impl ToolboxClient<()> {
-    /// Spawn a `toolbox-server` child process and connect to it over stdio.
+    /// Spawn a toolbox server child process and connect to it over stdio.
     pub async fn spawn(config: SpawnConfig) -> Result<Self, ClientError> {
-        let cmd = config.build_command()?;
+        let cmd = config.build_command();
         let transport = TokioChildProcess::new(cmd).map_err(ClientError::SpawnProcess)?;
         ToolboxClient::connect((), transport).await
     }
