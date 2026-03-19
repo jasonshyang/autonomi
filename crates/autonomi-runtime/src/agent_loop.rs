@@ -1,4 +1,5 @@
 use autonomi_agent::BoxedAgent;
+use autonomi_utils::Shared;
 use rig::message::Message;
 use tokio::sync::{broadcast, mpsc};
 
@@ -6,7 +7,6 @@ use crate::{
     event::{RuntimeEvent, StopReason},
     hooks::{ErrorContext, HookRegistry, PostCompletionContext, PrePromptContext},
     runtime::{AgentId, AgentInput},
-    shared::Shared,
 };
 
 /// The per-agent async task.  Runs until a `Shutdown` message is received or

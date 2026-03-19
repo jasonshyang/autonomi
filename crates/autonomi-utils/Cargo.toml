@@ -1,0 +1,12 @@
+[package]
+name = "autonomi-utils"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+chrono      = { workspace = true }
+serde       = { workspace = true }
+arc-swap    = { workspace = true }
+
+[dev-dependencies]
+tokio       = { workspace = true }

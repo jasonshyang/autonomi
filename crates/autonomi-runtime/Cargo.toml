@@ -5,8 +5,8 @@ version.workspace = true
 
 [dependencies]
 autonomi-agent = { workspace = true }
+autonomi-utils = { workspace = true }
 
-arc-swap    = { workspace = true }
 rig-core    = { workspace = true }
 tokio       = { workspace = true }
 serde       = { workspace = true }

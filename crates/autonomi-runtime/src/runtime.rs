@@ -1,6 +1,7 @@
 use std::{collections::HashMap, sync::Arc};
 
 use autonomi_agent::{BoxedAgent, RunAgent};
+use autonomi_utils::Shared;
 use tokio::{
     sync::{mpsc, oneshot},
     task::JoinHandle,
@@ -11,7 +12,6 @@ use crate::{
     error::RuntimeError,
     event::{EventBus, RuntimeEvent},
     hooks::{ArcHook, Hook, HookRegistry},
-    shared::Shared,
 };
 
 const DEFAULT_BUS_CAPACITY: usize = 1024;
@@ -140,7 +140,9 @@ impl Runtime {
     ///
     /// Use [`RuntimeBuilder::register`] for compile-time (startup)
     /// registration instead.
-    pub fn spawn<A: RunAgent>(&mut self, plugin: A) -> AgentId { self.spawn_boxed(Box::new(plugin)) }
+    pub fn spawn<A: RunAgent>(&mut self, plugin: A) -> AgentId {
+        self.spawn_boxed(Box::new(plugin))
+    }
 
     fn spawn_boxed(&mut self, plugin: BoxedAgent) -> AgentId {
         let id = self.allocate_id(plugin.name());

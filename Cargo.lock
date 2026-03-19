@@ -105,12 +105,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "autonomi-memory"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "autonomi-runtime",
+ "autonomi-utils",
+ "rig-core",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "autonomi-runtime"
 version = "0.1.0"
 dependencies = [
- "arc-swap",
  "async-trait",
  "autonomi-agent",
+ "autonomi-utils",
  "futures",
  "rig-core",
  "serde",
@@ -136,6 +151,16 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "autonomi-utils"
+version = "0.1.0"
+dependencies = [
+ "arc-swap",
+ "chrono",
+ "serde",
+ "tokio",
 ]
 
 [[package]]
