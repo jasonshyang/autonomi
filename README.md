@@ -21,3 +21,18 @@ See [`crates/autonomi-runtime`](crates/autonomi-runtime/README.md).
 A collection of reusable tools that can be passed to agents at construction time. Tools are compatible with the `rig` tool interface and cover common agentic use cases.
 
 See [`crates/autonomi-tools`](crates/autonomi-tools/README.md).
+
+### autonomi-memory
+
+Persistent episodic memory for autonomi agents powered by `rig` RAG. Embeds conversation turns into dense vectors and stores them in-process. Exposes a `MemoryHandle` — a cheap-to-clone, message-passing facade to a background `MemoryWorker` task — with three operations: fire-and-forget `add`, async vector `search` (top-N by cosine similarity), and `save`/`load` to persist and restore the store from a JSON file without re-embedding.
+
+See [`crates/autonomi-memory`](crates/autonomi-memory).
+
+### autonomi-utils
+
+Shared primitives used across the workspace.
+
+- **`Shared<T>`** — a cheaply-cloneable, lock-free shared value built on [`arc_swap`](https://docs.rs/arc-swap). Reads are wait-free (single atomic pointer load); writes atomically swap in a mutated clone via a closure.
+- **`Timestamp`** — a thin `u64` UTC Unix-seconds wrapper with `Serialize`/`Deserialize` support, used to timestamp memory entries and events.
+
+See [`crates/autonomi-utils`](crates/autonomi-utils).
