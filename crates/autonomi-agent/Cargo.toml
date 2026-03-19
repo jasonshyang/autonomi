@@ -1,0 +1,9 @@
+[package]
+name = "autonomi-agent"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+async-trait = { workspace = true }
+thiserror = { workspace = true }
+rig-core = { workspace = true }

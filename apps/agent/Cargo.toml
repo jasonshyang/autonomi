@@ -1,0 +1,9 @@
+[package]
+name = "agent"
+edition.workspace = true
+version.workspace = true
+
+[dependencies]
+autonomi-agent = { workspace = true }
+autonomi-runtime = { workspace = true }
+autonomi-tools = { workspace = true }

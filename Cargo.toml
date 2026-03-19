@@ -1,5 +1,5 @@
 [workspace]
-members  = ["crates/*"]
+members  = ["apps/*", "crates/*"]
 resolver = "2"
 
 [workspace.package]
@@ -7,13 +7,19 @@ edition = "2021"
 version = "0.1.0"
 
 [workspace.dependencies]
+autonomi-agent = { path = "crates/autonomi-agent" }
+autonomi-runtime = { path = "crates/autonomi-runtime" }
+autonomi-tools = { path = "crates/autonomi-tools" }
+
 thiserror = "2.0.18"
 rmcp = { version = "1.2.0", features = ["client", "server", "transport-child-process", "transport-streamable-http-client-reqwest", "macros"] }
 tokio = { version = "1.50.0", features = ["full"] }
 rig-core = { version = "0.33.0" }
 tracing = "0.1.44"
-serde = { version = "1.0.228", features = ["derive"] }
+serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 async-trait = "0.1.89"
 anyhow = "1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+futures = "0.3.32"
+arc-swap = "1.8.2"

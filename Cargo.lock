@@ -3,6 +3,15 @@
 version = 4
 
 [[package]]
+name = "agent"
+version = "0.1.0"
+dependencies = [
+ "autonomi-agent",
+ "autonomi-runtime",
+ "autonomi-tools",
+]
+
+[[package]]
 name = "aho-corasick"
 version = "1.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -25,6 +34,15 @@ name = "anyhow"
 version = "1.0.102"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f202df86484c868dbad7eaa557ef785d5c66295e41b460ef922eca0723b842c"
+
+[[package]]
+name = "arc-swap"
+version = "1.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f9f3647c145568cec02c42054e07bdf9a5a698e15b466fb2341bfc393cd24aa5"
+dependencies = [
+ "rustversion",
+]
 
 [[package]]
 name = "as-any"
@@ -76,6 +94,31 @@ name = "autocfg"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c08606f8c3cbf4ce6ec8e28fb0014a2c086708fe954eaa885384a6165172e7e8"
+
+[[package]]
+name = "autonomi-agent"
+version = "0.1.0"
+dependencies = [
+ "async-trait",
+ "rig-core",
+ "thiserror 2.0.18",
+]
+
+[[package]]
+name = "autonomi-runtime"
+version = "0.1.0"
+dependencies = [
+ "arc-swap",
+ "async-trait",
+ "autonomi-agent",
+ "futures",
+ "rig-core",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+]
 
 [[package]]
 name = "autonomi-tools"
