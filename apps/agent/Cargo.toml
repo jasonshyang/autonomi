@@ -7,6 +7,10 @@ version.workspace = true
 name = "demo"
 path = "src/bin/demo.rs"
 
+[[bin]]
+name = "recall"
+path = "src/bin/recall.rs"
+
 [dependencies]
 autonomi-agent   = { workspace = true }
 autonomi-memory  = { workspace = true }

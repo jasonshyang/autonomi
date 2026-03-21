@@ -6,7 +6,7 @@ Autonomi is a Rust workspace for building and running multi-agent LLM systems.
 
 ### autonomi-agent
 
-Defines what an agent is. Provides the `AgentConfig` trait for describing an agent's identity and system prompt, the `Agent<M, C>` struct for building a multi-turn conversational agent on top of any `rig`-compatible model, and the `Provider` factory for constructing model clients from environment variables. Ships a built-in `ResearchAgent` as a ready-to-use reference implementation.
+Defines what an agent is. Provides the `AgentConfig` struct for describing an agent's identity, system prompt, and sampling parameters — loaded from a TOML file at runtime rather than implemented in Rust code. Provides the `Agent<M>` struct for building a multi-turn conversational agent on top of any `rig`-compatible model, and the `Provider` factory for constructing model clients from environment variables.
 
 See [`crates/autonomi-agent`](crates/autonomi-agent/README.md).
 
@@ -39,9 +39,39 @@ See [`crates/autonomi-utils`](crates/autonomi-utils).
 
 ---
 
+## Agent definitions
+
+Agent configurations live as TOML files in [`agents/`](agents) at the workspace root. No Rust code is needed to define a new agent — just add a file:
+
+```toml
+# agents/my-agent.toml
+name     = "my-agent"
+preamble = "You are a helpful assistant."
+
+temperature = 0.5   # optional
+max_turns   = 10    # optional
+```
+
+Load it at runtime with:
+
+```rust
+let config = AgentConfig::from_file("agents/my-agent.toml")?;
+let agent  = Agent::new(Provider::openai(openai::GPT_4O), config, vec![]);
+```
+
+### Built-in agent definitions
+
+| File | Name | Purpose |
+|---|---|---|
+| [`agents/research.toml`](agents/research.toml) | `researcher` | Systematic research and information synthesis |
+| [`agents/demo.toml`](agents/demo.toml) | `demo` | Codebase exploration via filesystem tools |
+| [`agents/recall.toml`](agents/recall.toml) | `recall` | Answering questions from episodic memory |
+
+---
+
 ## Quick-start demo
 
-The `demo` binary in [`apps/agent`](apps/agent/src/bin/demo.rs) shows the full stack end-to-end: an Ollama-backed agent with filesystem tools and episodic memory that navigates the repo and summarises a crate's README in one sentence.
+The `demo` binary in [`apps/agent`](apps/agent/src/bin/demo.rs) shows the full stack end-to-end: an Ollama-backed agent loaded from [`agents/demo.toml`](agents/demo.toml), equipped with filesystem tools and episodic memory, that navigates the repo and summarises a crate's README in one sentence.
 
 ### Dependencies
 
@@ -61,4 +91,10 @@ cargo build --release -p toolbox
 BASIC_TOOLBOX_BIN=./target/release/basic-toolbox cargo run --bin demo
 ```
 
-The agent will use the filesystem tools to locate `crates/autonomi-agent/README.md` and print a one-sentence summary. Logs go to stderr; the agent response goes to stdout.
+The agent will use the filesystem tools to locate `crates/autonomi-utils/README.md` and print a one-sentence summary. Logs go to stderr; the agent response goes to stdout.
+
+A second demo, `recall`, restores the memory written by `demo` and sends the agent a recall task that can only be answered from prior session context:
+
+```sh
+BASIC_TOOLBOX_BIN=./target/release/basic-toolbox cargo run --bin recall
+```

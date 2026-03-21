@@ -1,8 +1,11 @@
+use std::path::Path;
+
 use rig::{
     agent::AgentBuilder,
     completion::{CompletionModel, Prompt},
     tool::ToolDyn,
 };
+use serde::Deserialize;
 
 use crate::{AgentError, AgentResult};
 
@@ -10,103 +13,136 @@ use crate::{AgentError, AgentResult};
 // AgentConfig
 // ---------------------------------------------------------------------------
 
-/// Provides a compile time full configuration for a concrete [`Agent`].
+/// Full configuration for an [`Agent`], loadable from a TOML file or string.
 ///
-/// Only `name` and `preamble` are required.
+/// Only `name` and `preamble` are required; all other fields are optional and
+/// fall back to sensible defaults (or the provider's own defaults) when absent.
 ///
-/// # Example
+/// # TOML shape
 ///
-/// ```rust,ignore
-/// use autonomi_agent::{AgentConfig, AgentResult};
+/// ```toml
+/// name     = "researcher"
+/// preamble = "You are a thorough research assistant."
 ///
-/// struct ResearchConfig;
+/// temperature = 0.3        # optional
+/// max_tokens  = 4096       # optional
+/// max_turns   = 10         # optional
 ///
-/// impl AgentConfig for ResearchConfig {
-///     fn name(&self) -> &str { "researcher" }
-///     fn preamble(&self) -> &str { "You are a thorough research assistant." }
-///     fn temperature(&self) -> Option<f64> { Some(0.3) }
-/// }
+/// # Zero or more extra context snippets injected on every request.
+/// additional_context = [
+///     "Always cite your sources.",
+/// ]
 /// ```
-pub trait AgentConfig: Send + Sync + 'static {
+#[derive(Debug, Clone, Deserialize)]
+pub struct AgentConfig {
     /// The display name of this agent.
     ///
     /// Used as the basis for `AgentId` generation in the runtime. If two
     /// agents share the same name, subsequent ones receive a numeric suffix
     /// (`name-1`, `name-2`, …).
-    fn name(&self) -> &str;
+    pub name: String,
 
     /// The system preamble (instructions) sent to the model on every turn.
-    fn preamble(&self) -> &str;
+    pub preamble: String,
 
     /// Sampling temperature. `None` defers to the provider default.
-    fn temperature(&self) -> Option<f64> { None }
+    #[serde(default)]
+    pub temperature: Option<f64>,
 
     /// Maximum number of tokens to generate. `None` defers to the provider
     /// default.
-    fn max_tokens(&self) -> Option<u64> { None }
+    #[serde(default)]
+    pub max_tokens: Option<u64>,
 
     /// Maximum number of agentic tool-call rounds per prompt turn before the
     /// agent returns. `None` defers to the rig default.
-    fn max_turns(&self) -> Option<usize> { None }
+    #[serde(default)]
+    pub max_turns: Option<usize>,
 
     /// Additional static context snippets injected into every request.
     ///
     /// Each element is passed as a separate `.context()` call on the builder,
     /// so documents remain distinct in the context window.
-    fn additional_context(&self) -> Vec<String> { vec![] }
+    #[serde(default)]
+    pub additional_context: Vec<String>,
+}
 
-    /// Called with the raw string response from the LLM before returning it.
+impl AgentConfig {
+    /// Load an [`AgentConfig`] from a TOML file on disk.
     ///
-    /// Override to post-process, validate, or transform the output.
-    /// Defaults to passing the response through unchanged.
-    fn handle_result(&self, result: String) -> AgentResult<String> { Ok(result) }
+    /// # Errors
+    ///
+    /// Returns an [`AgentError::Fatal`] if the file cannot be read or if the
+    /// TOML cannot be parsed into an [`AgentConfig`].
+    pub fn from_file(path: impl AsRef<Path>) -> AgentResult<Self> {
+        let raw = std::fs::read_to_string(path.as_ref()).map_err(|e| {
+            AgentError::fatal(std::io::Error::new(
+                e.kind(),
+                format!("failed to read agent config '{}': {e}", path.as_ref().display()),
+            ))
+        })?;
+        Self::from_toml_str(&raw)
+    }
+
+    /// Parse an [`AgentConfig`] from a TOML string.
+    ///
+    /// # Errors
+    ///
+    /// Returns an [`AgentError::Fatal`] if the TOML is invalid or missing
+    /// required fields.
+    pub fn from_toml_str(s: &str) -> AgentResult<Self> {
+        toml::from_str(s).map_err(|e| AgentError::fatal(e))
+    }
 }
 
 // ---------------------------------------------------------------------------
 // Agent
 // ---------------------------------------------------------------------------
 
-/// A concrete agent that couples a rig [`AgentBuilder<M>`] with a typed
-/// configuration [`C`] and a set of tools, building the underlying
+/// A concrete agent that couples a rig [`AgentBuilder<M>`] with an
+/// [`AgentConfig`] and a set of tools, building the underlying
 /// [`rig::agent::Agent<M>`] internally.
 ///
-/// `M` is the rig completion model; `C` provides the full agent config via
-/// [`AgentConfig`].
+/// `M` is the rig completion model.
 ///
 /// # Example
 ///
 /// ```rust,ignore
-/// use autonomi_agent::{Agent, provider::Provider};
+/// use autonomi_agent::{Agent, AgentConfig, provider::Provider};
 /// use rig::providers::openai;
 ///
-/// let builder = Provider::openai(openai::GPT_4O);
-/// let agent = Agent::new(builder, ResearchConfig, vec![]);
+/// let config = AgentConfig::from_file("agents/research.toml")?;
+/// let agent  = Agent::new(Provider::openai(openai::GPT_4O), config, vec![]);
 /// ```
-pub struct Agent<M: CompletionModel, C: AgentConfig> {
+pub struct Agent<M: CompletionModel> {
     inner: rig::agent::Agent<M>,
-    config: C,
+    config: AgentConfig,
 }
 
-impl<M: CompletionModel, C: AgentConfig> Agent<M, C> {
+impl<M: CompletionModel> Agent<M> {
     /// Build the agent from an [`AgentBuilder<M>`], a config, and any tools.
     ///
     /// All config fields (`preamble`, `temperature`, `max_tokens`, `max_turns`,
     /// `additional_context`) are applied to `builder` before calling
     /// `.build()`. Tools are registered via `.tools()`.
-    pub fn new(builder: AgentBuilder<M>, config: C, tools: Vec<Box<dyn ToolDyn>>) -> Self {
-        let mut b = builder.preamble(config.preamble());
+    pub fn new(
+        builder: AgentBuilder<M>,
+        config: AgentConfig,
+        tools: Vec<Box<dyn ToolDyn>>,
+    ) -> Self {
+        let mut b = builder.preamble(&config.preamble);
 
-        if let Some(t) = config.temperature() {
+        if let Some(t) = config.temperature {
             b = b.temperature(t);
         }
-        if let Some(n) = config.max_tokens() {
+        if let Some(n) = config.max_tokens {
             b = b.max_tokens(n);
         }
-        if let Some(n) = config.max_turns() {
+        if let Some(n) = config.max_turns {
             b = b.default_max_turns(n);
         }
-        for ctx in config.additional_context() {
-            b = b.context(&ctx);
+        for ctx in &config.additional_context {
+            b = b.context(ctx);
         }
 
         let inner = if tools.is_empty() { b.build() } else { b.tools(tools).build() };
@@ -115,25 +151,22 @@ impl<M: CompletionModel, C: AgentConfig> Agent<M, C> {
     }
 
     /// The display name of this agent, as reported by its configuration.
-    pub fn name(&self) -> &str { self.config.name() }
+    pub fn name(&self) -> &str { &self.config.name }
 
     /// Execute one prompt turn, mutating `history` in place.
     ///
     /// Forwards the prompt and history to the underlying rig agent via
-    /// `.with_history(history)` to maintain multi-turn context, then passes
-    /// the raw response through [`AgentConfig::handle_result`].
+    /// `.with_history(history)` to maintain multi-turn context.
     pub async fn prompt(
         &self,
         prompt: &str,
         history: &mut Vec<rig::message::Message>,
     ) -> AgentResult<String> {
-        let result = self
-            .inner
+        self.inner
             .prompt(prompt)
             .with_history(history)
             .await
-            .map_err(AgentError::recoverable)?;
-        self.config.handle_result(result)
+            .map_err(AgentError::recoverable)
     }
 }
 
@@ -146,7 +179,7 @@ pub type BoxedAgent = Box<dyn RunAgent>;
 
 /// Object-safe interface used by the runtime for dynamic agent dispatch.
 ///
-/// This trait is automatically implemented for any [`Agent<M, C>`]; you never
+/// This trait is automatically implemented for any [`Agent<M>`]; you never
 /// need to implement it manually.
 #[async_trait::async_trait]
 pub trait RunAgent: Send + Sync + 'static {
@@ -162,10 +195,9 @@ pub trait RunAgent: Send + Sync + 'static {
 }
 
 #[async_trait::async_trait]
-impl<M, C> RunAgent for Agent<M, C>
+impl<M> RunAgent for Agent<M>
 where
     M: CompletionModel + Send + Sync + 'static,
-    C: AgentConfig,
 {
     fn name(&self) -> &str { Agent::name(self) }
 

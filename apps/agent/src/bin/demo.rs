@@ -6,7 +6,8 @@
 //! 2. Connects a [`ToolboxClient`] and pulls its tool list (includes
 //!    `http_fetch`, filesystem tools, and process-info tools).
 //! 3. Creates a memory worker backed by Ollama `nomic-embed-text`.
-//! 4. Builds a [`DemoAgentConfig`] agent powered by Ollama `qwen3:4b`.
+//! 4. Loads the demo agent config from `agents/demo.toml` and builds an agent
+//!    powered by Ollama `qwen3:4b`.
 //! 5. Wires everything into a [`Runtime`] with a [`MemoryHook`] and a
 //!    [`TracingHook`].
 //! 6. Sends the agent a simple task: navigate the repo, find the autonomi-agent
@@ -96,15 +97,21 @@ async fn main() -> anyhow::Result<()> {
     let memory_handle = MemoryWorker::spawn_default(embedding_model);
 
     // -----------------------------------------------------------------------
-    // 4b. Build the demo agent — qwen3:4b completion via the same client,
-    //     with memory wired as dynamic context so past turns are retrieved
-    //     and injected into each prompt automatically.
+    // 4b. Load the demo agent config from TOML and build the agent.
+    //     qwen3:4b completion via the same Ollama client, with memory wired
+    //     as dynamic context so past turns are retrieved and injected into
+    //     each prompt automatically.
     // -----------------------------------------------------------------------
-    tracing::info!(model = COMPLETION_MODEL, "building demo agent");
+    tracing::info!(model = COMPLETION_MODEL, "loading demo agent config");
+    let config = AgentConfig::from_file("agents/demo.toml")
+        .map_err(|e| anyhow::anyhow!("failed to load agents/demo.toml: {e}"))?;
+
+    let agent_name = config.name.clone();
+
     let builder = ollama_client
         .agent(COMPLETION_MODEL)
         .dynamic_context(5, memory_handle.clone());
-    let agent = Agent::new(builder, DemoAgentConfig, tools);
+    let agent = Agent::new(builder, config, tools);
 
     // -----------------------------------------------------------------------
     // 5. Assemble the runtime with hooks
@@ -119,8 +126,8 @@ async fn main() -> anyhow::Result<()> {
         .build();
 
     let agent_id = runtime
-        .agent_id("demo")
-        .ok_or_else(|| anyhow::anyhow!("agent 'demo' not found in runtime"))?;
+        .agent_id(&agent_name)
+        .ok_or_else(|| anyhow::anyhow!("agent '{agent_name}' not found in runtime"))?;
 
     tracing::info!(%agent_id, "runtime built, agent registered");
 
@@ -174,8 +181,8 @@ async fn main() -> anyhow::Result<()> {
     // -----------------------------------------------------------------------
     // 8. Persist memory and shut everything down cleanly
     // -----------------------------------------------------------------------
-    tracing::info!("saving memory to demo_memory.json");
-    if let Err(e) = memory_handle.save("demo_memory.json").await {
+    tracing::info!("saving memory to .memory/demo_memory.json");
+    if let Err(e) = memory_handle.save(".memory/demo_memory.json").await {
         tracing::warn!(error = %e, "failed to save memory (non-fatal)");
     }
 
@@ -185,35 +192,4 @@ async fn main() -> anyhow::Result<()> {
 
     tracing::info!("demo agent done");
     Ok(())
-}
-
-// ---------------------------------------------------------------------------
-// DemoAgentConfig
-// ---------------------------------------------------------------------------
-
-/// Preamble for the demo agent.
-const DEMO_PREAMBLE: &str = r#"You are a helpful assistant that explores local codebases.
-
-When given a task:
-1. Use list_dir to browse directories and read_file to open files.
-2. Start from the current working directory and navigate from there.
-3. Answer concisely and only based on what you actually read."#;
-
-/// [`AgentConfig`] for the demo agent.
-///
-/// This struct is intentionally simple so it can be re-used (or copied) as a
-/// starting point for new agent binaries.
-pub struct DemoAgentConfig;
-
-impl AgentConfig for DemoAgentConfig {
-    fn name(&self) -> &str { "demo" }
-
-    fn preamble(&self) -> &str { DEMO_PREAMBLE }
-
-    /// Use a lower temperature for factual documentation summarisation.
-    fn temperature(&self) -> Option<f64> { Some(0.2) }
-
-    /// Allow enough turns for the agent to fetch a URL and then write a
-    /// thorough summary.
-    fn max_turns(&self) -> Option<usize> { Some(10) }
 }
